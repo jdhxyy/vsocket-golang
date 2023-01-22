@@ -26,11 +26,11 @@ type SendFunc func(data []uint8, ip uint32, port uint16)
 
 // SocketInfo 端口信息
 type SocketInfo struct {
-	Pipe int
+	Pipe uint64
 
 	// API
 	IsAllowSend IsAllowSendFunc
-	Send SendFunc
+	Send        SendFunc
 }
 
 type tSocket struct {
@@ -40,24 +40,24 @@ type tSocket struct {
 
 // RxParam 端口接收数据参数
 type RxParam struct {
-	Pipe int
-	Data []uint8
+	Pipe   uint64
+	Data   []uint8
 	Metric int
 	// 接收时间.单位:us
 	RxTime int64
 
 	// 源节点网络信息.不是网络端口可不管这两个字段
-	IP uint32
+	IP   uint32
 	Port uint16
 }
 
 // TxParam 端口发送数据参数
 type TxParam struct {
-	Pipe int
+	Pipe uint64
 	Data []uint8
 
 	// 源节点网络信息.不是网络端口可不管这两个字段
-	IP uint32
+	IP   uint32
 	Port uint16
 }
 
@@ -65,11 +65,11 @@ type TxParam struct {
 type RxCallback func(rxParam *RxParam)
 
 var observers []RxCallback
-var sockets map[int]*tSocket
+var sockets map[uint64]*tSocket
 
 func init() {
 	lagan.Info(tag, "init")
-	sockets = make(map[int]*tSocket)
+	sockets = make(map[uint64]*tSocket)
 }
 
 // Create 创建socket
@@ -115,8 +115,9 @@ func Send(txParam *TxParam) {
 	}
 
 	select {
-	case s.fifo<-txParam:
-	default:lagan.Error(tag, "%d send failed!fifo is full", s.Pipe)
+	case s.fifo <- txParam:
+	default:
+		lagan.Error(tag, "%d send failed!fifo is full", s.Pipe)
 	}
 }
 
@@ -151,7 +152,7 @@ func RegisterObserver(callback RxCallback) {
 }
 
 // IsAllowSend 是否允许发送
-func IsAllowSend(pipe int) bool {
+func IsAllowSend(pipe uint64) bool {
 	s, ok := sockets[pipe]
 	if ok == false {
 		return false
