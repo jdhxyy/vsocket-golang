@@ -1,5 +1,5 @@
 module github.com/jdhxyy/vsocket-golang
 
-go 1.12
+go 1.19
 
-require github.com/jdhxyy/lagan v0.0.0-20220306095625-f4e9fff73677
+require github.com/jdhxyy/lagan v0.0.0-20230806055601-eb5bfc2aa276
